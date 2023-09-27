@@ -1,0 +1,86 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Load the housing datasheet
+file_path = '/content/drive/MyDrive/Housing.csv'
+data = pd.read_csv(file_path)
+
+# defining the parameters and variables
+X1 = data[['area', 'bedrooms', 'bathrooms', 'stories', 'parking']]
+y1 = data['price']
+
+# For Problem 1.b
+X2 = data[['area', 'bedrooms', 'bathrooms', 'stories', 'mainroad', 'guestroom', 'basement', 'hotwaterheating', 'airconditioning', 'parking', 'prefarea']]
+y2 = data['price']
+
+# normalization
+def normalize(X):
+    return (X - X.mean()) / X.std()
+
+X1 = normalize(X1)
+X2 = normalize(X2)
+
+# Add a column of ones for bias term
+X1.insert(0, 'ones', 1)
+X2.insert(0, 'ones', 1)
+
+# Convert to NumPy arrays
+X1 = X1.to_numpy()
+X2 = X2.to_numpy()
+y1 = y1.to_numpy()
+y2 = y2.to_numpy()
+
+# Gradient Descent Function
+def gradient_descent(X, y, theta, alpha, iterations):
+    m = len(y)
+    history = []
+
+    for _ in range(iterations):
+        error = X.dot(theta) - y
+        gradient = X.T.dot(error) / m
+        theta = theta - (alpha * gradient).astype('float64')  # Ensure data type compatibility
+        cost = np.sum(error ** 2) / (2 * m)
+        history.append(cost)
+
+    return theta, history
+
+# Define hyperparameters
+alpha_values = [0.1, 0.05, 0.01]  # Learning rates
+iterations = 1000  # Number of iterations
+
+# Initialize parameters (thetas) to zeros with the correct dimension
+initial_theta1 = np.zeros(X1.shape[1])  # For Problem 1.a
+initial_theta2 = np.zeros(X2.shape[1])  # For Problem 1.b
+
+# Perform gradient descent and record losses for Problem 1.a
+losses1 = {}
+for alpha in alpha_values:
+    theta, history = gradient_descent(X1, y1, initial_theta1, alpha, iterations)
+    losses1[alpha] = history
+
+# Perform gradient descent and record losses for Problem 1.b
+losses2 = {}
+for alpha in alpha_values:
+    theta, history = gradient_descent(X2, y2, initial_theta2, alpha, iterations)
+    losses2[alpha] = history
+
+# Plot the training and validation losses for Problem 1.a
+plt.figure(figsize=(12, 6))
+for alpha, loss_history in losses1.items():
+    plt.plot(range(iterations), loss_history, label=f'Problem 1.a, Alpha={alpha}')
+plt.xlabel('Iterations')
+plt.ylabel('Loss')
+plt.legend()
+plt.title('Training Loss vs. Iterations - Problem 1.a')
+plt.show()
+
+# Plot the training and validation losses for Problem 1.b
+plt.figure(figsize=(12, 6))
+for alpha, loss_history in losses1.items():
+    plt.plot(range(iterations), loss_history, label=f'Problem 1.b, Alpha={alpha}')
+plt.xlabel('Iterations')
+plt.ylabel('Loss')
+plt.legend()
+plt.title('Training Loss vs. Iterations - Problem 1.b')
+plt.show()

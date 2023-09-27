@@ -1,0 +1,154 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Load the housing datasheet
+file_path = '/content/drive/MyDrive/Housing.csv'
+data = pd.read_csv(file_path)
+
+# Define the input features and target variable
+X = data[['area', 'bedrooms', 'bathrooms', 'stories', 'parking']]
+y = data['price']
+
+# Separate the training and validation sets
+split_ratio = 0.8
+num_samples = len(data)
+num_train_samples = int(split_ratio * num_samples)
+X_train, X_val = X[:num_train_samples], X[num_train_samples:]
+y_train, y_val = y[:num_train_samples], y[num_train_samples:]
+
+# Define preprocessing functions
+def normalize(X):
+    return (X - X.mean()) / X.std()
+
+def standardize(X):
+    return (X - X.mean()) / X.std()
+
+# Preprocess the input features for 2.a
+X_train_normalized_2a = normalize(X_train)
+X_val_normalized_2a = normalize(X_val)
+
+X_train_standardized_2a = standardize(X_train)
+X_val_standardized_2a = standardize(X_val)
+
+# Preprocess the input features for 2.b
+X_train_normalized_2b = normalize(X_train)
+X_val_normalized_2b = normalize(X_val)
+
+X_train_standardized_2b = standardize(X_train)
+X_val_standardized_2b = standardize(X_val)
+
+# Add a column of ones for bias term for both cases
+X_train_normalized_2a.insert(0, 'ones', 1)
+X_val_normalized_2a.insert(0, 'ones', 1)
+X_train_standardized_2a.insert(0, 'ones', 1)
+X_val_standardized_2a.insert(0, 'ones', 1)
+
+X_train_normalized_2b.insert(0, 'ones', 1)
+X_val_normalized_2b.insert(0, 'ones', 1)
+X_train_standardized_2b.insert(0, 'ones', 1)
+X_val_standardized_2b.insert(0, 'ones', 1)
+
+# Convert to NumPy arrays for both cases
+X_train_normalized_2a = X_train_normalized_2a.to_numpy()
+X_val_normalized_2a = X_val_normalized_2a.to_numpy()
+X_train_standardized_2a = X_train_standardized_2a.to_numpy()
+X_val_standardized_2a = X_val_standardized_2a.to_numpy()
+
+X_train_normalized_2b = X_train_normalized_2b.to_numpy()
+X_val_normalized_2b = X_val_normalized_2b.to_numpy()
+X_train_standardized_2b = X_train_standardized_2b.to_numpy()
+X_val_standardized_2b = X_val_standardized_2b.to_numpy()
+
+y_train = y_train.to_numpy()
+y_val = y_val.to_numpy()
+
+# Function for gradient descent
+def gradient_descent(X, y, theta, alpha, iterations):
+    m = len(y)
+    history = []
+
+    for _ in range(iterations):
+        error = X.dot(theta) - y
+        gradient = X.T.dot(error) / m
+        theta = theta - (alpha * gradient).astype('float64')
+        cost = np.sum(error ** 2) / (2 * m)
+        history.append(cost)
+
+    return theta, history
+
+# Hyperparameters
+alpha_values = [0.1, 0.05, 0.01]
+iterations = 1000
+
+# Initialize parameters (thetas) to zeros with the correct dimension for both cases
+initial_theta = np.zeros(X_train_normalized_2a.shape[1])
+
+# Perform gradient descent and record losses for input normalization for 2.a
+losses_normalized_2a = {}
+for alpha in alpha_values:
+    theta, history = gradient_descent(X_train_normalized_2a, y_train, initial_theta, alpha, iterations)
+    losses_normalized_2a[alpha] = history
+
+# Perform gradient descent and record losses for input standardization for 2.a
+losses_standardized_2a = {}
+for alpha in alpha_values:
+    theta, history = gradient_descent(X_train_standardized_2a, y_train, initial_theta, alpha, iterations)
+    losses_standardized_2a[alpha] = history
+
+# Initialize parameters (thetas) to zeros with the correct dimension for 2.b
+initial_theta = np.zeros(X_train_normalized_2b.shape[1])
+
+# Perform gradient descent and record losses for input normalization for 2.b
+losses_normalized_2b = {}
+for alpha in alpha_values:
+    theta, history = gradient_descent(X_train_normalized_2b, y_train, initial_theta, alpha, iterations)
+    losses_normalized_2b[alpha] = history
+
+# Perform gradient descent and record losses for input standardization for 2.b
+losses_standardized_2b = {}
+for alpha in alpha_values:
+    theta, history = gradient_descent(X_train_standardized_2b, y_train, initial_theta, alpha, iterations)
+    losses_standardized_2b[alpha] = history
+
+# Plot the training and validation losses for both cases
+plt.figure(figsize=(16, 8))
+
+# Plot the training and validation losses for input normalization for 2.a
+plt.subplot(2, 2, 1)
+for alpha, loss_history in losses_normalized_2a.items():
+    plt.plot(range(iterations), loss_history, label=f'Normalization, Alpha={alpha}')
+plt.title('2.a: Training Loss vs. Iterations (Normalization)')
+plt.xlabel('Iterations')
+plt.ylabel('Loss')
+plt.legend()
+
+# Plot the training and validation losses for input standardization for 2.a
+plt.subplot(2, 2, 2)
+for alpha, loss_history in losses_standardized_2a.items():
+    plt.plot(range(iterations), loss_history, linestyle='--', label=f'Standardization, Alpha={alpha}')
+plt.title('2.a: Training Loss vs. Iterations (Standardization)')
+plt.xlabel('Iterations')
+plt.ylabel('Loss')
+plt.legend()
+
+# Plot the training and validation losses for input normalization for 2.b
+plt.subplot(2, 2, 3)
+for alpha, loss_history in losses_normalized_2b.items():
+    plt.plot(range(iterations), loss_history, label=f'Normalization, Alpha={alpha}')
+plt.title('2.b: Training Loss vs. Iterations (Normalization)')
+plt.xlabel('Iterations')
+plt.ylabel('Loss')
+plt.legend()
+
+# Plot the training and validation losses for input standardization for 2.b
+plt.subplot(2, 2, 4)
+for alpha, loss_history in losses_standardized_2b.items():
+    plt.plot(range(iterations), loss_history, linestyle='--', label=f'Standardization, Alpha={alpha}')
+plt.title('2.b: Training Loss vs. Iterations (Standardization)')
+plt.xlabel('Iterations')
+plt.ylabel('Loss')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
